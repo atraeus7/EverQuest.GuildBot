@@ -41,12 +41,15 @@ class EverQuestWindow:
         send_key(Key.enter)
 
     def send_chat_message(self, message):
+        self.activate()
         self.clear_chat()
         send_text(message)
         send_key(Key.enter)
+    
+    def send_tell_message(self, to_player, message):
+        self.send_chat_message(f'/tell {to_player} {message}')
 
     def guild_dump(self, outputfile):
-        self.activate()
         return self.send_chat_message(f"/outputfile guild {outputfile}")
 
     def get_player_log_reader(self):
@@ -62,7 +65,6 @@ class EverQuestWindow:
         self.send_chat_message("/sit")
 
     def _lookup_current_player(self):
-        self.activate()
         self.send_chat_message("/loadskin default 1")
         print ('Waiting for loadskin to complete.')
         # TODO: Make this configurable as some machines may not reload the skin as quickly
@@ -87,7 +89,6 @@ class EverQuestWindow:
             LogMessageType.GUILD_STAT,
             self._update_current_guild)
 
-        self.activate()
         self.send_chat_message(f"/target {self.player.name}")
         self.send_chat_message(f"/guildstat")
         log_reader.process_new_messages()

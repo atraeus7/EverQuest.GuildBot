@@ -5,7 +5,7 @@ from utils.config import get_config, get_from_path
 
 # TODO: Validate configuration
 BUFFING_SPELLS = get_config('buffing.spells')
-RESTRICT_TO_GUILDIES = get_config('buffing.restrict_to_guildies')
+RESTRICT_TO_GUILDIES = get_config('buffing.restrict_to_guildies', True)
 
 class BuffManager:
     def __init__(self, eq_window: EverQuestWindow, guild_tracker: GuildTracker):
@@ -32,7 +32,7 @@ class BuffManager:
         self._eq_window.activate()
         # TODO: Check if player was not found in zone and inform them
         self._eq_window.target(tell_message.from_player)
-        self._eq_window.send_chat_message(f"/tell {tell_message.from_player} Incoming")
+        self._eq_window.send_tell_message(tell_message.from_player, 'Incoming')
         # TODO: Check if player was too far and inform them
 
         for spell_name in spells_to_cast:

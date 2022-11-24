@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 # TODO: Move to configuration file
 MIN_PRESS_DELAY = .100
 MAX_PRESS_DELAY = .225
-MINUTES_DELAY_IF_RECENT_INPUT = 1
+MINUTES_DELAY_IF_RECENT_INPUT = 0
 
 # TODO: Send commands to process in background rather than sending keypresses to current screen
 _keyboard = Controller()
