@@ -8,7 +8,7 @@ from game.entities.player import CurrentPlayer
 from game.logging.log_reader import EverQuestLogReader
 from game.logging.entities.log_message import LogMessageType
 
-from utils.input import send_text, send_multiple_keys, send_key
+from utils.output import send_text, send_multiple_keys, send_key
 from utils.config import get_config
 from utils.file import get_latest_modified_file
 
