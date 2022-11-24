@@ -1,29 +1,7 @@
-import time
-from datetime import timedelta
-from game.window import EverQuestWindow
-from game.guild.guild_tracker import GuildTracker
-from utils.input import has_recent_input, get_timedelta_since_input
-from game.logging.entities.log_message import LogMessageType
-from game.buff.buff_manager import BuffManager
-from utils.config import get_config
+from bot import Bot
 
-TICK_LENGTH = .1
+def main():
+    Bot().start()
 
-window = EverQuestWindow()
-player_log_reader = window.get_player_log_reader()
-
-guild_tracker = GuildTracker(window)
-
-# Configure log message subscriptions
-if get_config('buffing.enabled'):
-    buff_manager = BuffManager(window, guild_tracker)
-    player_log_reader.observe_messages(LogMessageType.TELL_RECEIVE, buff_manager.handle_tell_message)
-
-# Execute services which need to be activated periodically
-while(True):
-    if not has_recent_input():
-        if get_config('log_parsing.enabled', True):
-            player_log_reader.process_new_messages()
-        if get_config('guild_tracking.enabled'):
-            guild_tracker.update_status()
-    time.sleep(TICK_LENGTH)
+if __name__=='__main__':
+    main()

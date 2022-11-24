@@ -8,7 +8,7 @@ from game.guild.dump_analyzer import build_differential as build_dump_differenti
 from game.guild.dkp_analyzer import build_differential as build_dkp_summary_differential
 from game.guild.formatter.discord_status_report_formatter import DiscordStatusReportFormatter
 from game.guild.dkp_gateway import DkpGateway
-from integrations.discord import send_discord_message
+from integrations.discord import send_message, DiscordWebhookType
 from utils.file import move_file, make_directory, get_files_from_directory, read_json, write_json
 from utils.config import get_config
 from utils.array import contains
@@ -104,8 +104,9 @@ class GuildTracker:
             dkp_summary_differential = self._create_dkp_summary()
         
         if OUTPUT_TO_DISCORD:
-            send_discord_message(self._discord_formatter.build_output(dump_differential, dkp_summary_differential))
-
+            send_message(
+                DiscordWebhookType.GUILD_STATUS,
+                self._discord_formatter.build_output(dump_differential, dkp_summary_differential))
 
     def is_a_member(self, name):
         if not self._last_dump:

@@ -1,7 +1,7 @@
 import time
 from game.window import EverQuestWindow
 from game.guild.guild_tracker import GuildTracker
-from utils.config import get_config, get_from_path
+from utils.config import get_config
 
 # TODO: Validate configuration
 BUFFING_SPELLS = get_config('buffing.spells')
