@@ -72,8 +72,6 @@ def create_log_message(raw_text):
         timestamp = _parse_timestamp(raw_text[0:26]),
         from_character = message_split[0] if is_communication_message else None,
         to = _parse_message_to(full_message, message_split, message_type),
-        # remove the surrounding quotes from player message
-        # e.g. Soandso tells you, 'this is the inner message'
         inner_message = _parse_inner_message(full_message) if is_communication_message else None,
         full_message = full_message,
         message_type = message_type)
