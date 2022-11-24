@@ -12,11 +12,15 @@ class BidMessageType(Enum):
     END_ROUND = 'End Round'
 
 @dataclass
-class BidMessage:
+class BidMessage(ABC):
     timestamp: datetime
     full_message: str
     from_player: str
-    message_type: BidMessageType
+
+    @property
+    @abstractmethod
+    def message_type(self) -> BidMessageType:
+        pass
 
     def print(self):
         print(vars(self))
@@ -24,3 +28,24 @@ class BidMessage:
 @dataclass
 class EnqueueBidItemsMessage(BidMessage):
     items: List
+
+    @property
+    def message_type(self) -> BidMessageType:
+        return BidMessageType.ENQUEUE_BID_ITEMS
+
+@dataclass
+class StartRoundMessage(BidMessage):
+    @property
+    def message_type(self) -> BidMessageType:
+        return BidMessageType.START_ROUND
+
+@dataclass
+class BidOnItemMessage(BidMessage):
+    item: str
+    amount: int
+    is_box_bid: bool
+    is_alt_bid: bool
+
+    @property
+    def message_type(self) -> BidMessageType:
+        return BidMessageType.BID_ON_ITEM
