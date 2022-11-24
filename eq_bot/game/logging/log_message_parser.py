@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from game.logging.entities.log_message import LogMessage, LogMessageType
 
@@ -45,6 +46,9 @@ def _parse_message_to(full_message, message_split, message_type):
         return message_split[2].rstrip(',').capitalize()
     # TODO: Log warning
 
+def _parse_inner_message(full_message):
+    return re.search(", '(.*)'$", full_message).group(1)
+
 def create_log_message(raw_text):
     full_message = raw_text[27:].rstrip('\n')
     message_split = full_message.split(' ')
@@ -57,6 +61,6 @@ def create_log_message(raw_text):
         to = _parse_message_to(full_message, message_split, message_type),
         # remove the surrounding quotes from player message
         # e.g. Soandso tells you, 'this is the inner message'
-        inner_message = message_split[-1][1:-1] if is_player_message else None,
+        inner_message = _parse_inner_message(full_message) if is_player_message else None,
         full_message = full_message,
         message_type = message_type)
