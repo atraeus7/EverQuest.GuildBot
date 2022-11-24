@@ -2,7 +2,17 @@ import re
 from datetime import datetime
 from game.logging.entities.log_message import LogMessage, LogMessageType
 
-PLAYER_MESSAGES = ['tells', 'says', 'shouts', 'auctions', 'channel']
+COMMUNICATION_MESSAGES = [
+    LogMessageType.AUCTION,
+    LogMessageType.CHANNEL,
+    LogMessageType.GROUP,
+    LogMessageType.GUILD,
+    LogMessageType.OUT_OF_CHARACTER,
+    LogMessageType.SAY,
+    LogMessageType.SHOUT,
+    LogMessageType.TELL_SEND,
+    LogMessageType.TELL_RECEIVE
+]
 
 def _parse_timestamp(input):
     return datetime.strptime(input, "[%a %b %d %H:%M:%S %Y]")
@@ -47,20 +57,23 @@ def _parse_message_to(full_message, message_split, message_type):
     # TODO: Log warning
 
 def _parse_inner_message(full_message):
-    return re.search(", '(.*)'$", full_message).group(1)
+    result = re.search(", '(.*)'$", full_message)
+    if not result or len(result.groups()) == 0:
+        raise ValueError('Failed to parse inner message.')
+    return result.group(1)
 
 def create_log_message(raw_text):
     full_message = raw_text[27:].rstrip('\n')
     message_split = full_message.split(' ')
     message_type = _parse_message_type(full_message, message_split)
-    is_player_message = message_type != LogMessageType.UNKNOWN
+    is_communication_message = message_type in COMMUNICATION_MESSAGES
 
     return LogMessage(
         timestamp = _parse_timestamp(raw_text[0:26]),
-        from_player = message_split[0] if is_player_message else None,
+        from_character = message_split[0] if is_communication_message else None,
         to = _parse_message_to(full_message, message_split, message_type),
         # remove the surrounding quotes from player message
         # e.g. Soandso tells you, 'this is the inner message'
-        inner_message = _parse_inner_message(full_message) if is_player_message else None,
+        inner_message = _parse_inner_message(full_message) if is_communication_message else None,
         full_message = full_message,
         message_type = message_type)
