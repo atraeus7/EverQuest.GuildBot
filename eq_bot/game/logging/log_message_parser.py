@@ -1,4 +1,3 @@
-import shlex
 from datetime import datetime
 from game.logging.entities.log_message import LogMessage, LogMessageType
 
@@ -48,7 +47,7 @@ def _parse_message_to(full_message, message_split, message_type):
 
 def create_log_message(raw_text):
     full_message = raw_text[27:].rstrip('\n')
-    message_split = shlex.split(full_message)
+    message_split = full_message.split(' ')
     message_type = _parse_message_type(full_message, message_split)
     is_player_message = message_type != LogMessageType.UNKNOWN
 
@@ -56,6 +55,8 @@ def create_log_message(raw_text):
         timestamp = _parse_timestamp(raw_text[0:26]),
         from_player = message_split[0] if is_player_message else None,
         to = _parse_message_to(full_message, message_split, message_type),
-        inner_message = message_split[-1] if is_player_message else None,
+        # remove the surrounding quotes from player message
+        # e.g. Soandso tells you, 'this is the inner message'
+        inner_message = message_split[-1][1:-1] if is_player_message else None,
         full_message = full_message,
         message_type = message_type)
