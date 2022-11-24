@@ -3,7 +3,7 @@ from pynput.mouse import Listener as MouseListener
 from datetime import datetime, timedelta
 from utils.config import get_config
 
-MINUTES_DELAY_IF_RECENT_INPUT = get_config('general.input.minutes_delay_if_recent_input', 1)
+SECONDS_DELAY_IF_RECENT_INPUT = get_config('general.input.seconds_delay_if_recent_input', 60)
 
 _input_observers = []
 
@@ -28,8 +28,8 @@ def _on_scroll_mouse(x, y, dx, dy):
 
 # Methods for tracking the last input time
 
-_last_input_time = datetime.now() - timedelta(minutes=MINUTES_DELAY_IF_RECENT_INPUT) 
-_minutes_delay_if_recent_input = timedelta(minutes=MINUTES_DELAY_IF_RECENT_INPUT)
+_last_input_time = datetime.now() - timedelta(seconds=SECONDS_DELAY_IF_RECENT_INPUT) 
+_seconds_delay_if_recent_input = timedelta(seconds=SECONDS_DELAY_IF_RECENT_INPUT)
 
 _keyboard_listener = KeyboardListener(
     on_press=_on_press_key,
@@ -58,6 +58,6 @@ def get_timedelta_since_input():
     return datetime.now() - _last_input_time
 
 def has_recent_input():
-    return get_timedelta_since_input() < _minutes_delay_if_recent_input
+    return get_timedelta_since_input() < _seconds_delay_if_recent_input
 
 observe_input(_update_last_input_time)
