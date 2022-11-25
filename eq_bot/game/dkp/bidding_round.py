@@ -16,9 +16,6 @@ class BiddingRound:
         self._enabled = True
         self._length = length
     
-    def add_items(self, items) -> None:
-        self._items.extend(items)
-    
     def has_items(self) -> bool:
         return len(self._items) >= 0
 
