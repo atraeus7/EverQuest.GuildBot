@@ -35,9 +35,17 @@ class EnqueueBidItemsMessage(BidMessage):
 
 @dataclass
 class StartRoundMessage(BidMessage):
+    length: int
+
     @property
     def message_type(self) -> BidMessageType:
         return BidMessageType.START_ROUND
+
+@dataclass
+class EndRoundMessage(BidMessage):
+    @property
+    def message_type(self) -> BidMessageType:
+        return BidMessageType.END_ROUND
 
 @dataclass
 class BidOnItemMessage(BidMessage):

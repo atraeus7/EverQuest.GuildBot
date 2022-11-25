@@ -1,9 +1,11 @@
 from datetime import datetime
 from game.logging.entities.log_message import LogMessage
-from game.dkp.entities.bid_message import BidMessage, EnqueueBidItemsMessage, StartRoundMessage, BidOnItemMessage, BidMessageType
+from game.dkp.entities.bid_message import BidMessage, EnqueueBidItemsMessage, \
+    StartRoundMessage, EndRoundMessage, BidOnItemMessage, BidMessageType
 
 ENQUEUE_ITEMS_CMD = '#enqueue-items'
 START_ROUND_CMD = '#start-round'
+END_ROUND_CMD = '#end-round'
 ITEM_BID_CMD = '#bid'
 
 def parse_bid_message(tell_message: LogMessage):
@@ -18,7 +20,20 @@ def parse_bid_message(tell_message: LogMessage):
             ]
         )
     if tell_message.inner_message.startswith(START_ROUND_CMD):
+        round_length = tell_message.inner_message.lstrip(START_ROUND_CMD).strip()
+        if len(round_length) > 0:
+            if not round_length.isnumeric():
+                # TODO: Message player
+                return
+
         return StartRoundMessage(
+            timestamp = tell_message.timestamp,
+            full_message = tell_message.inner_message,
+            from_player = tell_message.from_character,
+            length = round_length or 0
+        )
+    if tell_message.inner_message.startswith(END_ROUND_CMD):
+        return EndRoundMessage(
             timestamp = tell_message.timestamp,
             full_message = tell_message.inner_message,
             from_player = tell_message.from_character
