@@ -11,7 +11,7 @@ def parse_bid_message(tell_message: LogMessage):
         return EnqueueBidItemsMessage(
             timestamp = tell_message.timestamp,
             full_message = tell_message.inner_message,
-            from_player = tell_message.from_player,
+            from_player = tell_message.from_character,
             items = [
                 item.strip() for item in
                 filter(None, tell_message.inner_message.lstrip(ENQUEUE_ITEMS_CMD).split(';'))
@@ -21,7 +21,7 @@ def parse_bid_message(tell_message: LogMessage):
         return StartRoundMessage(
             timestamp = tell_message.timestamp,
             full_message = tell_message.inner_message,
-            from_player = tell_message.from_player
+            from_player = tell_message.from_character
         )
     if tell_message.inner_message.startswith(ITEM_BID_CMD):
         bid_parts = tell_message.inner_message.lstrip(ITEM_BID_CMD).split(':')
@@ -40,7 +40,7 @@ def parse_bid_message(tell_message: LogMessage):
         return BidOnItemMessage(
             timestamp = tell_message.timestamp,
             full_message = tell_message.inner_message,
-            from_player = tell_message.from_player,
+            from_player = tell_message.from_character,
             item = bid_parts[0].strip(),
             amount = int(amount_str),
             is_box_bid = 'box' in bid_attributes,

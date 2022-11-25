@@ -39,7 +39,7 @@ class BiddingManager:
 
     def handle_tell_message(self, tell_message):
         # Do not proceed if restrict to guildies enabled and is not a guild member
-        if RESTRICT_TO_GUILDIES and not self._guild_tracker.is_a_member(tell_message.from_player):
+        if RESTRICT_TO_GUILDIES and not self._guild_tracker.is_a_member(tell_message.from_character):
             # TODO: Log a warning
             return
 
