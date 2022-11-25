@@ -1,4 +1,6 @@
 import time
+import signal
+import sys
 from datetime import timedelta
 from game.window import EverQuestWindow
 from game.guild.guild_tracker import GuildTracker
@@ -7,12 +9,16 @@ from game.logging.entities.log_message import LogMessageType
 from game.buff.buff_manager import BuffManager
 from utils.config import get_config
 
+def sigterm_handler(_signo, _stack_frame):
+    sys.exit(0)
+
 TICK_LENGTH = .1
 
 window = EverQuestWindow()
 player_log_reader = window.get_player_log_reader()
 
 guild_tracker = GuildTracker(window)
+signal.signal(signal.SIGTERM, sigterm_handler)
 
 # Configure log message subscriptions
 if get_config('buffing.enabled'):
