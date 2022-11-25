@@ -63,14 +63,17 @@ class EverQuestWindow:
 
     def _lookup_current_player(self):
         self.activate()
-        self.send_chat_message("/loadskin default 1")
-        print ('Waiting for loadskin to complete.')
-        # TODO: Make this configurable as some machines may not reload the skin as quickly
-        # .. or just find a better way to handle this :)
-        time.sleep(10)
-        print('Looking up recently modified UI ini file.')
-        latest_file = get_latest_modified_file(f"{EVERQUEST_ROOT_FOLDER}\\UI_*")
-        search_result = re.search(r"UI_(.*)_(.*).ini", latest_file.split('\\')[-1])
+        self.send_chat_message("/log on")
+        print('Looking up recently modified log file.')
+
+        latest_file = get_latest_modified_file(f"{EVERQUEST_ROOT_FOLDER}\\Logs\\eqlog_*")
+        if not latest_file:
+            raise ValueError('Failed to find any log files. Is EverQuest running?')
+
+        search_result = re.search(r"eqlog_(.*)_(.*).txt", latest_file.split('\\')[-1])
+        if not search_result or len(search_result.groups()) < 2:
+            raise ValueError('Failed to parse player name and/or server from log file.')
+
         if not self.player.name:
             self.player.name = search_result.group(1)
         if not self.player.server:
