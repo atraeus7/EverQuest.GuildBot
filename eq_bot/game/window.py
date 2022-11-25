@@ -1,6 +1,8 @@
 import re
 import time
 import win32gui
+from queue import Queue
+from threading import Thread
 from pynput.keyboard import Key
 from dataclasses import dataclass
 from game.entities.player import CurrentPlayer
@@ -16,18 +18,30 @@ from utils.file import get_latest_modified_file
 EVERQUEST_ROOT_FOLDER=get_config('game.root_folder').rstrip("\\")
 
 
-class EverQuestWindow:
+class EverQuestWindow(Thread):
     def __init__(self):
+        super().__init__()
         self.player = CurrentPlayer(
             name=get_config('player.name'),
             server=get_config('player.server'),
             guild=get_config('player.guild'))
+
+        self._queue = Queue()
 
         if get_config('player.autodetect'):
             if not self.player.name or not self.player.server:
                 self._lookup_current_player()
             if not self.player.guild:
                 self._lookup_current_guild()
+
+    # Run this as a daemon so the thread will be cleaned up if the process is destroyed
+    def run(self) -> None:
+        while True:
+            handler = self._queue.get(block=True)
+            handler()
+
+    def handle_window_action(self, action):
+        self._queue.put(action)
 
     def _lookup(self):
         return win32gui.FindWindow(None, "EverQuest")

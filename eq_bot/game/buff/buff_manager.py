@@ -13,8 +13,9 @@ class BuffManager:
         self._guild_tracker = guild_tracker
 
     def handle_tell_message(self, tell_message):
-        # TODO: Enqueue and process messages when window is not busy given that messages will come in asynchronously
+        self._eq_window.handle_window_action(self.handle_tell_message_async(tell_message))
 
+    def handle_tell_message_async(self, tell_message):
         # Do not proceed if restrict to guildies enabled and is not a guild member
         if RESTRICT_TO_GUILDIES and not self._guild_tracker.is_a_member(tell_message.from_player):
             # TODO: Log a warning

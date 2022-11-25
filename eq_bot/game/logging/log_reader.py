@@ -1,3 +1,4 @@
+import time
 from os.path import exists
 from utils.file import move_file
 from datetime import datetime
@@ -5,15 +6,18 @@ from game.entities.player import CurrentPlayer
 from game.logging.entities.log_message import LogMessageType
 from game.logging.log_message_parser import create_log_message
 from utils.config import get_config
+from threading import Thread
 
 PLAYER_LOG_TIMESTAMP_FORMAT='%Y%m%d-%H%M%S'
 
 # TODO: Move to configuration file
 MAX_LINES_READ = 100
+TICK_LENGTH = .1
 
-class EverQuestLogReader:
+class EverQuestLogReader(Thread):
 
     def __init__(self, log_folder: str, player: CurrentPlayer):
+        super().__init__()
         self.log_folder = log_folder
         self.player = player
         self.observers = {}
@@ -21,7 +25,13 @@ class EverQuestLogReader:
         
         if get_config('log_parsing.cycle_on_start'):
             self.cycle_player_log()
-    
+
+    # Run this as a daemon so the thread will be cleaned up if the process is destroyed
+    def run(self) -> None:
+        while True:
+            self.process_new_messages()
+            time.sleep(TICK_LENGTH)
+
     def _get_log_filename(self):
         return f'eqlog_{self.player.name}_{self.player.server.lower()}'
 

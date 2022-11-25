@@ -19,11 +19,18 @@ if get_config('buffing.enabled'):
     buff_manager = BuffManager(window, guild_tracker)
     player_log_reader.observe_messages(LogMessageType.TELL_RECEIVE, buff_manager.handle_tell_message)
 
+# Starts a thread which manages a queue of actions to be performed by the window
+window.daemon = True
+window.start()
+
+# Starts a thread that continuously monitors the log
+if get_config('log_parsing.enabled', True):
+    window.get_player_log_reader().daemon = True
+    window.get_player_log_reader().start()
+
 # Execute services which need to be activated periodically
-while(True):
+while True:
     if not has_recent_input():
-        if get_config('log_parsing.enabled', True):
-            player_log_reader.process_new_messages()
         if get_config('guild_tracking.enabled'):
             guild_tracker.update_status()
     time.sleep(TICK_LENGTH)
