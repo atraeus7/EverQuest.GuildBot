@@ -63,3 +63,33 @@ class BiddingRound:
                 is_box_bid = is_box_bid,
                 is_alt_bid = is_alt_bid
             ))
+
+    def end_round(self):
+        for item in self._items:
+            if len(item.bids) == 0:
+                # TODO: Add "no bid" results
+                break
+
+            remaining_bids = sorted(self._items, key = lambda i: i.amount, reverse = True)
+
+            remaining_item_count = item.count
+            while remaining_item_count > 0 and len(remaining_bids) > 0:
+                top_bid = remaining_bids[0].amount
+                top_bidders = remaining_bids = filter(lambda b: (b.amount == top_bid), item.bids)
+
+                top_bidders_count = len(top_bidders)
+
+                if top_bidders_count > 1:
+                    if top_bidders_count <= remaining_item_count:
+                        # TODO: Add "winner" results
+                        remaining_item_count -= top_bidders_count
+                        remaining_bids = remaining_bids[top_bidders_count:]
+                    else:
+                        # TODO: Resolve tiebreaker
+                else:
+                    # TODO: Add "winner" result
+                    remaining_item_count -= 1
+                    remaining_bids = remaining_bids[1:]
+
+            if remaining_item_count > 0:
+                # TODO: Add "no bid" results
