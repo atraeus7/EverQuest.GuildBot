@@ -17,7 +17,7 @@ class BuffManager:
 
     def handle_tell_message_async(self, tell_message):
         # Do not proceed if restrict to guildies enabled and is not a guild member
-        if RESTRICT_TO_GUILDIES and not self._guild_tracker.is_a_member(tell_message.from_player):
+        if RESTRICT_TO_GUILDIES and not self._guild_tracker.is_a_member(tell_message.from_character):
             # TODO: Log a warning
             return
         
@@ -32,13 +32,13 @@ class BuffManager:
 
         self._eq_window.activate()
         # TODO: Check if player was not found in zone and inform them
-        self._eq_window.target(tell_message.from_player)
-        self._eq_window.send_chat_message(f"/tell {tell_message.from_player} Incoming")
+        self._eq_window.target(tell_message.from_character)
+        self._eq_window.send_chat_message(f"/tell {tell_message.from_character} Incoming")
         # TODO: Check if player was too far and inform them
 
         for spell_name in spells_to_cast:
             spell_config = BUFFING_SPELLS[spell_name]
-            self._eq_window.cast_spell(tell_message.from_player, spell_name, spell_config['spell_slot'])
+            self._eq_window.cast_spell(tell_message.from_character, spell_name, spell_config['spell_slot'])
             recast_time = spell_config.get('recast_time', 1)
             time.sleep(spell_config['cast_time'] + recast_time)
 

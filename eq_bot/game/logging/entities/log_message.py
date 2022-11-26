@@ -22,7 +22,7 @@ class LogMessage:
     timestamp: datetime
     full_message: str
     inner_message: str
-    from_player: str
+    from_character: str
     to: str
     message_type: LogMessageType
 
