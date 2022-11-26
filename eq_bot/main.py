@@ -14,7 +14,7 @@ def sig_handler(_signo, _stack_frame):
 
 TICK_LENGTH = .1
 
-window = EverQuestWindow()
+window = EverQuestWindow(daemon=True)
 player_log_reader = window.get_player_log_reader()
 
 guild_tracker = GuildTracker(window)
@@ -27,12 +27,10 @@ if get_config('buffing.enabled'):
     player_log_reader.observe_messages(LogMessageType.TELL_RECEIVE, buff_manager.handle_tell_message)
 
 # Starts a thread which manages a queue of actions to be performed by the window
-window.daemon = True
 window.start()
 
 # Starts a thread that continuously monitors the log
 if get_config('log_parsing.enabled', True):
-    window.get_player_log_reader().daemon = True
     window.get_player_log_reader().start()
 
 # Execute services which need to be activated periodically

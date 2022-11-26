@@ -19,8 +19,8 @@ EVERQUEST_ROOT_FOLDER=get_config('game.root_folder').rstrip("\\")
 
 
 class EverQuestWindow(Thread):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, daemon: bool = False):
+        super().__init__(daemon=daemon)
         self.player = CurrentPlayer(
             name=get_config('player.name'),
             server=get_config('player.server'),
@@ -64,7 +64,7 @@ class EverQuestWindow(Thread):
         return self.send_chat_message(f"/outputfile guild {outputfile}")
 
     def get_player_log_reader(self):
-        return EverQuestLogReader(f'{EVERQUEST_ROOT_FOLDER}\\Logs', self.player)
+        return EverQuestLogReader(f'{EVERQUEST_ROOT_FOLDER}\\Logs', self.player, daemon=True)
 
     def target(self, target):
         self.send_chat_message(f"/target {target}")

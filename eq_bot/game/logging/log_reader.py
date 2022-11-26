@@ -16,8 +16,8 @@ TICK_LENGTH = .1
 
 class EverQuestLogReader(Thread):
 
-    def __init__(self, log_folder: str, player: CurrentPlayer):
-        super().__init__()
+    def __init__(self, log_folder: str, player: CurrentPlayer, daemon: bool = False):
+        super().__init__(daemon=daemon)
         self.log_folder = log_folder
         self.player = player
         self.observers = {}
