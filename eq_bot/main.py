@@ -9,7 +9,7 @@ from game.logging.entities.log_message import LogMessageType
 from game.buff.buff_manager import BuffManager
 from utils.config import get_config
 
-def sigterm_handler(_signo, _stack_frame):
+def sig_handler(_signo, _stack_frame):
     sys.exit(0)
 
 TICK_LENGTH = .1
@@ -18,7 +18,8 @@ window = EverQuestWindow()
 player_log_reader = window.get_player_log_reader()
 
 guild_tracker = GuildTracker(window)
-signal.signal(signal.SIGTERM, sigterm_handler)
+signal.signal(signal.SIGTERM, sig_handler)
+signal.signal(signal.SIGINT, sig_handler)
 
 # Configure log message subscriptions
 if get_config('buffing.enabled'):
