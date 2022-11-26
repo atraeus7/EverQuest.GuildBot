@@ -1,9 +1,11 @@
 import boto3
 
 from botocore.config import Config
+from datetime import timedelta
 
 from warrant.aws_srp import AWSSRP
 
+from utils.time import local_datetime
 from utils.config import get_secret
 from integrations.aws.entities.iam_credentials import IamCredentials
 from integrations.aws.entities.cognito_credentials import CognitoCredentials
@@ -43,7 +45,7 @@ class CognitoSession:
                 f'cognito-idp.{self._region}.amazonaws.com/{self._user_pool}':
                     self._tokens.id_token
             })
-        print('RESPONSE', response)
+        print('RESPONSE', response, 'CREDS THO', response['Credentials']['Expiration'])
         return IamCredentials(
             expires_at = response['Credentials']['Expiration'],
             access_key_id = response['Credentials']['AccessKeyId'],
@@ -58,6 +60,8 @@ class CognitoSession:
             client_id=self._client_id,
             pool_region=self._region).authenticate_user()
         return CognitoCredentials(
+            # Remove 10 seconds just in case there was latency when returning response
+            expires_at=local_datetime() + timedelta(seconds=tokens['AuthenticationResult']['ExpiresIn'] - 10),
             id_token=tokens['AuthenticationResult']['IdToken'],
             refresh_token=tokens['AuthenticationResult']['RefreshToken'],
             access_token=tokens['AuthenticationResult']['AccessToken'])
@@ -66,7 +70,9 @@ class CognitoSession:
     def tokens(self):
         # TODO: Check if cognito credentials are expired
         # and refresh if so
-        if not self._tokens:
+        if self._tokens is not None:
+            print('HAY', local_datetime(), self._tokens.expires_at)
+        if not self._tokens or local_datetime() >= self._tokens.expires_at:
             self._tokens = self._refresh_tokens()
         return self._tokens
 
@@ -78,6 +84,8 @@ class CognitoSession:
 
     @property
     def iam_credentials(self):
-        if not self._iam_credentials or datetime.now() >= self._iam_credentials.expires_at:
+        if self._iam_credentials is not None:
+            print('HAY', local_datetime(), self._iam_credentials.expires_at)
+        if not self._iam_credentials or local_datetime() >= self._iam_credentials.expires_at:
             self._iam_credentials = self._get_iam_credentials()
         return self._iam_credentials
