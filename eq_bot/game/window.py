@@ -38,6 +38,11 @@ class EverQuestWindow(Thread):
     def run(self) -> None:
         while True:
             handler = self._queue.get(block=True)
+            if not callable(handler):
+                print(
+                    f'Received an action of type {type(handler)}, rather than a function. The action will be ignored.',
+                    flush=True)
+                continue
             handler()
 
     def handle_window_action(self, action):
