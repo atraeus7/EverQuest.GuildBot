@@ -1,6 +1,8 @@
 import re
 import time
 import win32gui
+from queue import Queue
+from threading import Thread
 from pynput.keyboard import Key
 from dataclasses import dataclass
 from game.entities.player import CurrentPlayer
@@ -16,18 +18,35 @@ from utils.file import get_latest_modified_file
 EVERQUEST_ROOT_FOLDER=get_config('game.root_folder').rstrip("\\")
 
 
-class EverQuestWindow:
-    def __init__(self):
+class EverQuestWindow(Thread):
+    def __init__(self, daemon: bool = False):
+        super().__init__(daemon=daemon)
         self.player = CurrentPlayer(
             name=get_config('player.name'),
             server=get_config('player.server'),
             guild=get_config('player.guild'))
+
+        self._queue = Queue()
 
         if get_config('player.autodetect'):
             if not self.player.name or not self.player.server:
                 self._lookup_current_player()
             if not self.player.guild:
                 self._lookup_current_guild()
+
+    # Run this as a daemon so the thread will be cleaned up if the process is destroyed
+    def run(self) -> None:
+        while True:
+            handler = self._queue.get(block=True)
+            if not callable(handler):
+                print(
+                    f'Received an action of type {type(handler)}, rather than a function. The action will be ignored.',
+                    flush=True)
+                continue
+            handler()
+
+    def handle_window_action(self, action):
+        self._queue.put(action)
 
     def _lookup(self):
         return win32gui.FindWindow(None, "EverQuest")
@@ -50,7 +69,7 @@ class EverQuestWindow:
         return self.send_chat_message(f"/outputfile guild {outputfile}")
 
     def get_player_log_reader(self):
-        return EverQuestLogReader(f'{EVERQUEST_ROOT_FOLDER}\\Logs', self.player)
+        return EverQuestLogReader(f'{EVERQUEST_ROOT_FOLDER}\\Logs', self.player, daemon=True)
 
     def target(self, target):
         self.send_chat_message(f"/target {target}")
