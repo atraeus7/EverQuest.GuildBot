@@ -31,7 +31,7 @@ window.start()
 
 # Starts a thread that continuously monitors the log
 if get_config('log_parsing.enabled', True):
-    window.get_player_log_reader().start()
+    player_log_reader.start()
 
 # Execute services which need to be activated periodically
 while True:
