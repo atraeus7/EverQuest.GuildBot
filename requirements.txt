@@ -5,3 +5,5 @@ python-dateutil==2.8.2
 discord==1.7.3
 requests==2.28.1
 PyYAML==6.0
+warrant==0.6.1
+requests-auth-aws-sigv4==0.7

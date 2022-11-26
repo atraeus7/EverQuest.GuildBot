@@ -1,12 +1,14 @@
 from datetime import datetime
 from game.logging.entities.log_message import LogMessage
 from game.dkp.entities.bid_message import BidMessage, EnqueueBidItemsMessage, \
-    StartRoundMessage, EndRoundMessage, BidOnItemMessage, BidMessageType
+    StartRoundMessage, EndRoundMessage, BidOnItemMessage, BeginRaidMessage, \
+    BidMessageType
 
 ENQUEUE_ITEMS_CMD = '#enqueue-items'
 START_ROUND_CMD = '#start-round'
 END_ROUND_CMD = '#end-round'
 ITEM_BID_CMD = '#bid'
+BEGIN_RAID_CMD = '#begin-raid'
 
 def parse_bid_message(tell_message: LogMessage):
     if tell_message.inner_message.startswith(ENQUEUE_ITEMS_CMD):
@@ -60,6 +62,18 @@ def parse_bid_message(tell_message: LogMessage):
             amount = int(amount_str),
             is_box_bid = 'box' in bid_attributes,
             is_alt_bid = 'alt' in bid_attributes
+        )
+    if tell_message.inner_message.startswith(BEGIN_RAID_CMD):
+        raid_name = tell_message.inner_message.lstrip(BEGIN_RAID_CMD).strip()
+        if not raid_name:
+            # TODO: Message player
+            return
+        
+        return BeginRaidMessage(
+            timestamp = tell_message.timestamp,
+            full_message = tell_message.inner_message,
+            from_player = tell_message.from_character,
+            raid_name = raid_name
         )
 
     return None

@@ -86,6 +86,7 @@ class BiddingRound:
                         remaining_bids = remaining_bids[top_bidders_count:]
                     else:
                         # TODO: Resolve tiebreaker
+                        pass
                 else:
                     # TODO: Add "winner" result
                     remaining_item_count -= 1
@@ -93,3 +94,4 @@ class BiddingRound:
 
             if remaining_item_count > 0:
                 # TODO: Add "no bid" results
+                pass

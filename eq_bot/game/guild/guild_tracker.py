@@ -7,7 +7,7 @@ from game.guild.dump_parser import parse_dump_file
 from game.guild.dump_analyzer import build_differential as build_dump_differential
 from game.guild.dkp_analyzer import build_differential as build_dkp_summary_differential
 from game.guild.formatter.discord_status_report_formatter import DiscordStatusReportFormatter
-from game.guild.dkp_gateway import DkpGateway
+from game.dkp.dkp_gateway import DkpGateway
 from integrations.discord import send_discord_message
 from utils.file import move_file, make_directory, get_files_from_directory, read_json, write_json
 from utils.config import get_config

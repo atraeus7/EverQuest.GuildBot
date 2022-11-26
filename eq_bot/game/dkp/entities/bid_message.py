@@ -10,6 +10,7 @@ class BidMessageType(Enum):
     BID_ON_ITEM = 'Bid On Item'
     START_ROUND = 'Start Round'
     END_ROUND = 'End Round'
+    BEGIN_RAID = 'Begin Raid'
 
 @dataclass
 class BidMessage(ABC):
@@ -32,6 +33,14 @@ class EnqueueBidItemsMessage(BidMessage):
     @property
     def message_type(self) -> BidMessageType:
         return BidMessageType.ENQUEUE_BID_ITEMS
+
+@dataclass
+class BeginRaidMessage(BidMessage):
+    raid_name: str
+
+    @property
+    def message_type(self) -> BidMessageType:
+        return BidMessageType.BEGIN_RAID
 
 @dataclass
 class StartRoundMessage(BidMessage):
