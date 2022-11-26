@@ -17,9 +17,6 @@ def generate_sigv4_headers(iam_credentials, method, region, endpoint, body,
         content_type='application/json', headers=None, service='execute-api'):
 
     url = urlparse(endpoint)
-    if not headers:
-        headers = {}
-
 
     # Create a date for headers and the credential string
     t = datetime.datetime.utcnow()
@@ -45,7 +42,10 @@ def generate_sigv4_headers(iam_credentials, method, region, endpoint, body,
     # Note that there is a trailing \n.
     canonical_headers = ''
 
-    header_dict = {
+    if not headers:
+        headers = {}
+
+    headers = {
         'content-type': content_type,
         'host': url.hostname,
         'x-amz-security-token': iam_credentials.session_token,
@@ -53,21 +53,16 @@ def generate_sigv4_headers(iam_credentials, method, region, endpoint, body,
         **headers
     }
 
-    for header, value in sorted(header_dict.items()):
-        canonical_headers += f'{header}:{value}\n'
+    sorted_header_keys = sorted(headers.keys())
+    for header_key in sorted_header_keys:
+        canonical_headers += f'{header_key}:{headers[header_key]}\n'
 
     # Step 5: Create the list of signed headers. This lists the headers
     # in the canonical_headers list, delimited with ";" and in alpha order.
     # Note: The request can include any headers; canonical_headers and
     # signed_headers include those that you want to be included in the
     # hash of the request. "Host" and "x-amz-date" are always required.
-    # For DynamoDB, content-type and x-amz-target are also required.
-    signed_headers = 'content-type;host;x-amz-security-token;x-amz-date'
-
-    for header in headers:
-        signed_headers += f';{header}'
-
-    signed_headers = 'clientid;cognitoinfo;content-type;host;x-amz-date;x-amz-security-token'
+    signed_headers = ';'.join(sorted_header_keys)
 
     # Step 6: Create payload hash. In this example, the payload (body of
     # the request) contains the request parameters.
@@ -96,12 +91,10 @@ def generate_sigv4_headers(iam_credentials, method, region, endpoint, body,
     authorization_header = algorithm + ' ' + 'Credential=' + iam_credentials.access_key_id + '/' + credential_scope + ', ' +  'SignedHeaders=' + signed_headers + ', ' + 'Signature=' + signature
 
     # For DynamoDB, the request can include any headers, but MUST include "host", "x-amz-date",
-    # "x-amz-target", "content-type", and "Authorization". Except for the authorization
-    # header, the headers must be included in the canonical_headers and signed_headers values, as
+    # "content-type", and "Authorization". Except for the authorization header, the
+    # headers must be included in the canonical_headers and signed_headers values, as
     # noted earlier. Order here is not significant.
-    # # Python note: The 'host' header is added automatically by the Python 'requests' library.
     return {'Content-Type':content_type,
-            'host': url.hostname,
             'X-Amz-Date':amz_date,
             'x-amz-security-token': iam_credentials.session_token,
             'Authorization':authorization_header}
