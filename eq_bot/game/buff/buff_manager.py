@@ -13,7 +13,7 @@ class BuffManager:
         self._guild_tracker = guild_tracker
 
     def handle_tell_message(self, tell_message):
-        self._eq_window.handle_window_action(self.handle_tell_message_async(tell_message))
+        self._eq_window.handle_window_action(lambda: self.handle_tell_message_async(tell_message))
 
     def handle_tell_message_async(self, tell_message):
         # Do not proceed if restrict to guildies enabled and is not a guild member
