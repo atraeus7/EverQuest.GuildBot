@@ -13,8 +13,8 @@ def getSignatureKey(key, date_stamp, regionName, serviceName):
     kSigning = sign(kService, 'aws4_request')
     return kSigning
     
-def generate_headers(access_key_id, secret_key, session_token, method, region,
-        endpoint, body, content_type='application/json', headers=None, service='execute-api'):
+def generate_sigv4_headers(iam_credentials, method, region, endpoint, body,
+        content_type='application/json', headers=None, service='execute-api'):
 
     url = urlparse(endpoint)
     if not headers:
@@ -43,10 +43,18 @@ def generate_headers(access_key_id, secret_key, session_token, method, region,
     # Step 4: Create the canonical headers. Header names must be trimmed
     # and lowercase, and sorted in code point order from low to high.
     # Note that there is a trailing \n.
-    canonical_headers = 'content-type:' + content_type + '\n' + 'host:' + url.hostname + '\n' + 'x-amz-security-token:' + session_token + '\n' + 'x-amz-date:' + amz_date
+    canonical_headers = ''
 
-    for header, value in headers.items():
-        canonical_headers += f'\n{header}:{value}'
+    header_dict = {
+        'content-type': content_type,
+        'host': url.hostname,
+        'x-amz-security-token': iam_credentials.session_token,
+        'x-amz-date': amz_date,
+        **headers
+    }
+
+    for header, value in sorted(header_dict.items()):
+        canonical_headers += f'{header}:{value}\n'
 
     # Step 5: Create the list of signed headers. This lists the headers
     # in the canonical_headers list, delimited with ";" and in alpha order.
@@ -59,14 +67,14 @@ def generate_headers(access_key_id, secret_key, session_token, method, region,
     for header in headers:
         signed_headers += f';{header}'
 
+    signed_headers = 'clientid;cognitoinfo;content-type;host;x-amz-date;x-amz-security-token'
+
     # Step 6: Create payload hash. In this example, the payload (body of
     # the request) contains the request parameters.
     payload_hash = hashlib.sha256(body.encode('utf-8')).hexdigest()
 
     # Step 7: Combine elements to create canonical request
     canonical_request = method + '\n' + canonical_uri + '\n' + canonical_querystring + '\n' + canonical_headers + '\n' + signed_headers + '\n' + payload_hash
-
-    print('CANONICAL REQUEST', canonical_request, '\n')
 
     # ************* TASK 2: CREATE THE STRING TO SIGN*************
     # Match the algorithm to the hashing algorithm you use, either SHA-1 or
@@ -77,9 +85,7 @@ def generate_headers(access_key_id, secret_key, session_token, method, region,
 
     # ************* TASK 3: CALCULATE THE SIGNATURE *************
     # Create the signing key using the function defined above.
-    signing_key = getSignatureKey(secret_key, date_stamp, region, service)
-
-    print ('SECRET KEY', secret_key, '\n')
+    signing_key = getSignatureKey(iam_credentials.secret_key, date_stamp, region, service)
 
     # Sign the string_to_sign using the signing_key
     signature = hmac.new(signing_key, (string_to_sign).encode('utf-8'), hashlib.sha256).hexdigest()
@@ -87,7 +93,7 @@ def generate_headers(access_key_id, secret_key, session_token, method, region,
 
     # ************* TASK 4: ADD SIGNING INFORMATION TO THE REQUEST *************
     # Put the signature information in a header named Authorization.
-    authorization_header = algorithm + ' ' + 'Credential=' + access_key_id + '/' + credential_scope + ', ' +  'SignedHeaders=' + signed_headers + ', ' + 'Signature=' + signature
+    authorization_header = algorithm + ' ' + 'Credential=' + iam_credentials.access_key_id + '/' + credential_scope + ', ' +  'SignedHeaders=' + signed_headers + ', ' + 'Signature=' + signature
 
     # For DynamoDB, the request can include any headers, but MUST include "host", "x-amz-date",
     # "x-amz-target", "content-type", and "Authorization". Except for the authorization
@@ -95,6 +101,7 @@ def generate_headers(access_key_id, secret_key, session_token, method, region,
     # noted earlier. Order here is not significant.
     # # Python note: The 'host' header is added automatically by the Python 'requests' library.
     return {'Content-Type':content_type,
+            'host': url.hostname,
             'X-Amz-Date':amz_date,
-            'x-amz-security-token': session_token,
+            'x-amz-security-token': iam_credentials.session_token,
             'Authorization':authorization_header}
