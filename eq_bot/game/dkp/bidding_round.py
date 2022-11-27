@@ -11,12 +11,12 @@ class BiddingRound:
     def __init__(self):
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self._items = []
         self._enabled = False
         self._length = 0
     
-    def start(self, length) -> None:
+    def start(self, length: int) -> None:
         self._enabled = True
         self._length = length
     
@@ -26,7 +26,7 @@ class BiddingRound:
     def is_enabled(self) -> bool:
         return self._enabled
 
-    def _build_round_item_message(self, prefix):
+    def _build_round_item_message(self, prefix: str) -> List[str]:
         messages_to_send = []
         message = f'{prefix}: {self._items[0].print()}'
 
@@ -52,7 +52,7 @@ class BiddingRound:
             'Please message me with your bid in the following format: #bid itemname : bidamount [box]'
         ]
 
-    def enqueue_items(self, items):
+    def enqueue_items(self, items: List[str]) -> None:
         for item in items:
             existing_item = next((i for i in self._items if i.name == item), None)
             if existing_item:
@@ -60,7 +60,7 @@ class BiddingRound:
             else:
                 self._items.append(BiddableItem(item))
 
-    def bid_on_item(self, from_player, item, amount, is_box_bid, is_alt_bid):
+    def bid_on_item(self, from_player: str, item: str, amount: int, is_box_bid: bool, is_alt_bid: bool) -> None:
         biddable_item = next((i for i in self._items if i.name == item), None)
         if not biddable_item:
             raise KeyError(f'{from_player} attempted to bid on an item which was not in the round: {item}')
@@ -78,10 +78,7 @@ class BiddingRound:
                 is_alt_bid = is_alt_bid
             ))
 
-    def _get_win_amount(self, next_highest_bid):
-        return next_highest_bid.amount + 1 if next_highest_bid else 1
-
-    def end_round(self):
+    def end_round(self) -> List[BidResult]:
         round_results = []
         for item in self._items:
             if len(item.bids) == 0:
