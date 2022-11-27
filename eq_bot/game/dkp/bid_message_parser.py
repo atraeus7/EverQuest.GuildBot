@@ -25,7 +25,7 @@ def parse_bid_message(tell_message: LogMessage):
         round_length = tell_message.inner_message.lstrip(START_ROUND_CMD).strip()
         if len(round_length) > 0:
             if not round_length.isnumeric():
-                # TODO: Message player
+                # TODO: Raise an exception / send message back to player
                 return
 
         return StartRoundMessage(
@@ -44,14 +44,14 @@ def parse_bid_message(tell_message: LogMessage):
         bid_parts = tell_message.inner_message.lstrip(ITEM_BID_CMD).split(':')
 
         if len(bid_parts) != 2:
-            # TODO: Message player
+            # TODO: Raise an exception / send message back to player
             return
 
         bid_attributes = bid_parts[1].strip().split(' ')
 
         amount_str = bid_attributes[0].strip() 
         if not amount_str or not amount_str.isnumeric():
-            # TODO: Message player
+            # TODO: Raise an exception / send message back to player
             return
 
         return BidOnItemMessage(
@@ -66,7 +66,7 @@ def parse_bid_message(tell_message: LogMessage):
     if tell_message.inner_message.startswith(BEGIN_RAID_CMD):
         raid_name = tell_message.inner_message.lstrip(BEGIN_RAID_CMD).strip()
         if not raid_name:
-            # TODO: Message player
+            # TODO: Raise an exception / send message back to player
             return
         
         return BeginRaidMessage(

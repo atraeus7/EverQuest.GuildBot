@@ -2,12 +2,16 @@ from typing import List
 
 from game.dkp.entities.biddable_item import BiddableItem
 from game.dkp.entities.player_bid import PlayerBid
+from game.dkp.entities.bid_result import BidResult
 
 MAX_GUILD_MESSAGE_LENGTH = 508
 ITEM_JOIN_STR = ' | '
 
 class BiddingRound:
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self._items = []
         self._enabled = False
         self._length = 0
@@ -22,21 +26,31 @@ class BiddingRound:
     def is_enabled(self) -> bool:
         return self._enabled
 
-    def build_round_messages(self) -> List[str]:
+    def _build_round_item_message(self, prefix):
         messages_to_send = []
-        guild_message = f'BIDDING CURRENTLY OPEN ON: {self._items[0].print()}'
+        message = f'{prefix}: {self._items[0].print()}'
 
         for item in self._items[1:]:
             item_message = item.print()
-            if len(guild_message) + len(item_message) + len(ITEM_JOIN_STR) <= MAX_GUILD_MESSAGE_LENGTH:
-                guild_message += f'{ITEM_JOIN_STR}{item_message}'
+            if len(message) + len(item_message) + len(ITEM_JOIN_STR) <= MAX_GUILD_MESSAGE_LENGTH:
+                message += f'{ITEM_JOIN_STR}{item_message}'
             else:
-                messages_to_send.append(guild_message)
+                messages_to_send.append(message)
 
                 # start the next message with the current item
-                guild_message = item_message
+                message = item_message
+        
+        messages_to_send.append(message)
+        return messages_to_send
 
-        messages_to_send.append(guild_message)
+    def build_end_round_messages(self) -> List[str]:
+        return self._build_round_item_message('BIDDING CLOSED ON')
+
+    def build_start_round_messages(self) -> List[str]:
+        return [
+            *self._build_round_item_message('BIDDING CURRENTLY OPEN ON'),
+            'Please message me with your bid in the following format: #bid itemname : bidamount [box]'
+        ]
 
     def enqueue_items(self, items):
         for item in items:
@@ -64,34 +78,71 @@ class BiddingRound:
                 is_alt_bid = is_alt_bid
             ))
 
+    def _get_win_amount(self, next_highest_bid):
+        return next_highest_bid.amount + 1 if next_highest_bid else 1
+
     def end_round(self):
+        round_results = []
         for item in self._items:
             if len(item.bids) == 0:
-                # TODO: Add "no bid" results
+                round_results.append(BidResult(item=item.name))
                 break
 
-            remaining_bids = sorted(self._items, key = lambda i: i.amount, reverse = True)
+            remaining_bids = sorted(item.bids, key = lambda i: i.amount, reverse = True)
 
             remaining_item_count = item.count
             while remaining_item_count > 0 and len(remaining_bids) > 0:
-                top_bid = remaining_bids[0].amount
-                top_bidders = remaining_bids = filter(lambda b: (b.amount == top_bid), item.bids)
+                top_bid_amount = remaining_bids[0].amount
+                tied_bids = list(filter(lambda b: (b.amount == top_bid_amount), item.bids))
 
-                top_bidders_count = len(top_bidders)
+                tied_bids_count = len(tied_bids)
 
-                if top_bidders_count > 1:
-                    if top_bidders_count <= remaining_item_count:
-                        # TODO: Add "winner" results
-                        remaining_item_count -= top_bidders_count
-                        remaining_bids = remaining_bids[top_bidders_count:]
+                if tied_bids_count > 1:
+
+                    # Get the win amount using the next highest bidder who is not part of the tie
+                    win_amount = remaining_bids[tied_bids_count].amount + 1 \
+                        if len(remaining_bids) > tied_bids_count else 1
+
+                    # Are there an equal amount or more items available than the number of bidders
+                    if tied_bids_count <= remaining_item_count:
+
+                        round_results.extend([
+                            BidResult(
+                                winner=bid.from_player,
+                                item=item.name,
+                                amount=win_amount
+                            ) for bid in tied_bids
+                        ])
+
+                        remaining_item_count -= tied_bids_count
+                        remaining_bids = remaining_bids[tied_bids_count:]
                     else:
-                        # TODO: Resolve tiebreaker
-                        pass
+                        round_results.append(BidResult(
+                            tied_players=[ bid.from_player for bid in tied_bids ],
+                            item=item.name,
+                            amount=win_amount
+                        ))
+                        remaining_item_count = 0
+                        break
                 else:
-                    # TODO: Add "winner" result
+                   # Get the win amount using the next highest bidder
+                    win_amount = remaining_bids[1].amount + 1 \
+                        if len(remaining_bids) > 1 else 1
+
+                    round_results.append(BidResult(
+                        winner=remaining_bids[0].from_player,
+                        item=item.name,
+                        amount=win_amount
+                    ))
+
                     remaining_item_count -= 1
                     remaining_bids = remaining_bids[1:]
 
             if remaining_item_count > 0:
-                # TODO: Add "no bid" results
+                round_results.append(BidResult(item=item.name))
                 pass
+
+        # End the round, preventing new bids from being accepted
+        self.reset()
+
+        return round_results

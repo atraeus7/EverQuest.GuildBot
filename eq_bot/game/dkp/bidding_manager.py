@@ -50,7 +50,7 @@ class BiddingManager:
                     'A round of bidding is already active. You cannot start a new round.')
                 return
 
-            if self._bidding_round.has_items():
+            if not self._bidding_round.has_items():
                 print(f'{bid_message.from_player} attempted to start a round of bidding, but no items are in the next round.')
                 self._eq_window.send_tell_message(
                     bid_message.from_player,
@@ -59,20 +59,45 @@ class BiddingManager:
             
             self._bidding_round.start(bid_message.length or DEFAULT_ROUND_LENGTH)
 
-            for message in self._bidding_round.build_round_messages():
+            for message in self._bidding_round.build_start_round_messages():
                 self._eq_window.send_tell_message(
                     bid_message.from_player,
                     message)
 
+        if bid_message.message_type == BidMessageType.END_ROUND:
+            if not self._bidding_round.is_enabled():
+                print(f'{bid_message.from_player} attempted to end a round of bidding, but a round is not active.')
+                self._eq_window.send_tell_message(
+                    bid_message.from_player,
+                    'There is not a round of bidding currently active.')
+                return
+
+            for message in self._bidding_round.build_end_round_messages():
+                self._eq_window.send_tell_message(
+                    bid_message.from_player,
+                    message)
+
+            for bid_result in self._bidding_round.end_round():
+                for message in bid_result.build_chat_messages():
+                    self._eq_window.send_tell_message(
+                        bid_message.from_player,
+                        message)
+
         if bid_message.message_type == BidMessageType.BID_ON_ITEM:
+            if not self._bidding_round.is_enabled():
+                print(f'{bid_message.from_player} attempted to bid on {bid_message.item} for {bid_message.amount} dkp, but a round is not active.')
+                self._eq_window.send_tell_message(
+                    bid_message.from_player,
+                    'There is not a round of bidding currently active.')
+                return
+
             try:
                 self._bidding_round.bid_on_item(
                     bid_message.from_player,
                     bid_message.item,
                     bid_message.amount,
                     bid_message.is_box_bid,
-                    bid_message.is_alt_bid
-                )
+                    bid_message.is_alt_bid)
             except KeyError:
                 self._eq_window.send_tell_message(
                     bid_message.from_player,
