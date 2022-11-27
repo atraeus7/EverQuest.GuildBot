@@ -90,6 +90,10 @@ class BiddingRound:
 
             remaining_bids = sorted(item.bids, key = lambda i: i.amount, reverse = True)
 
+            # TODO: Handle alt/box logic
+            # - Alt bids should never win over a "non" alt bid
+            # - Box bids are for 2x the amount of "non" box bids
+
             remaining_item_count = item.count
             while remaining_item_count > 0 and len(remaining_bids) > 0:
                 top_bid_amount = remaining_bids[0].amount

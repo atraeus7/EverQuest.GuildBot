@@ -7,6 +7,7 @@ class OpenDkp:
         self._api_gateway = OpenDkpApiGateway()
 
     # Example flow of how we can integrate/push changes to OpenDKP directly
+    # TODO: Pass expansion as a parameter
     def create_raid(self, raid_name):
         # TODO: Lookup raid by name and ensure it doesn't exist, or else
         # we will create a duplicate raid with an identical name

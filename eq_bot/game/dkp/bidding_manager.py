@@ -78,6 +78,8 @@ class BiddingManager:
                     message)
 
             for bid_result in self._bidding_round.end_round():
+                # TODO: FEATURE ENHANCEMENT: Commit wins to OpenDKP raid
+                # TODO: FEATURE ENHANCEMENT: Commit alt wins to alt bid tracker
                 for message in bid_result.build_chat_messages():
                     self._eq_window.send_tell_message(
                         bid_message.from_player,
@@ -107,3 +109,13 @@ class BiddingManager:
 
         if bid_message.message_type == BidMessageType.BEGIN_RAID:
             self._opendkp.create_raid(bid_message.raid_name)
+
+            # TODO: FEATURE ENHANCEMENT
+            # Begin a process which can take DKP ticks on an interval
+            # by performing raid dumps. We will want to think about the case
+            # where the bot was started later than the raid. Perhaps we could add a
+            # parameter to indicate the start time? Regardless, this process
+            # should be updating OpenDKP on that interval for a specific amount.
+            # e.g. every 30 mintues add 2 DKP for everyone in the raid.
+            # Note: As part of this we may want to automatically accept raid invites
+            # from officers in the guild.

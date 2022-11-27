@@ -85,6 +85,7 @@ class OpenDkpApiGateway:
                 "Attendance": 1,
                 "Items": [],
                 "Name": raid_name,
+                # TODO: Take expansion as a parameter
                 "Pool": {
                     "Name": "DoN",
                     "IdPool": 10
