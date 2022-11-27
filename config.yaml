@@ -44,3 +44,8 @@ buffing:
     Hastening of Salik:
       spell_slot: 7
       cast_time: 9
+monitoring:
+  notifications:
+    notify_on_start: true
+    notify_on_stop: true
+    notify_on_crash: true

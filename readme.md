@@ -2,6 +2,7 @@
 
 ## Features
 - Perform regular guild dumps and notify remote discord channel of members who have logged on, logged off, joined the guild, or left the guild.
+- Scan OpenDKP and notify when guild members have become inactive (e.g. 30 day raid attendance has dropped below a specified threshold).
 - Buff players with requested buffs. Can be configured to only buff guild memebers.
 - Observable log parser which can notify subscribed python functions when specific types of messages arrive.
 
@@ -17,7 +18,7 @@
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
-3. Clone down the repository locally
+3. Clone down the repository
 4. From within a terminal (Powershell, bash, etc), navigate to the cloned repository
 5. Create and activate a new virtual environment
 ```powershell
@@ -28,11 +29,13 @@ python -m venv .venv
 ```powershell
 pip install -r requirements.txt
 ```
+_Certain pip packages require redistributables such as C++ Build Tools to be installed. If you receive an error for a missage dependency, please install the dependency before rerunning the pip install command._
 
 7. If you intend to output guild status reports to discord, create a file named `secrets.yaml` at the project root and include your webhook config.
 ```yaml
 webhooks:
-  guild-status-discord-url: https://discord.com/api/webhooks/################/#######################################
+  discord:
+    url: https://discord.com/api/webhooks/################/#######################################
 ```
 
 ## Configuration
