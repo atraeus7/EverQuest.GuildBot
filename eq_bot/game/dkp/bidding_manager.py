@@ -5,18 +5,18 @@ from utils.config import get_config
 from game.dkp.bid_message_parser import parse_bid_message
 from game.dkp.entities.bid_message import BidMessageType
 from game.dkp.bidding_round import BiddingRound
-from game.dkp.dkp_gateway import DkpGateway
+from integrations.opendkp.opendkp import OpenDkp
 
 RESTRICT_TO_GUILDIES = get_config('dkp.bidding.restrict_to_guildies', True)
 
 DEFAULT_ROUND_LENGTH = 180
 
 class BiddingManager:
-    def __init__(self, eq_window: EverQuestWindow, guild_tracker: GuildTracker):
+    def __init__(self, eq_window: EverQuestWindow, guild_tracker: GuildTracker, opendkp: OpenDkp):
         self._eq_window = eq_window
+        self._opendkp = opendkp
         self._guild_tracker = guild_tracker
         self._bidding_round = BiddingRound()
-        self._dkp_gateway = DkpGateway()
 
     def handle_tell_message(self, tell_message):
         # Do not proceed if restrict to guildies enabled and is not a guild member
@@ -80,4 +80,4 @@ class BiddingManager:
             print(f'{bid_message.from_player} has bid {bid_message.amount} on {bid_message.item}')
 
         if bid_message.message_type == BidMessageType.BEGIN_RAID:
-            self._dkp_gateway.create_raid(bid_message.raid_name)
+            self._opendkp.create_raid(bid_message.raid_name)

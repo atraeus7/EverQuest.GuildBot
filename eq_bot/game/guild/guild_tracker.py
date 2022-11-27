@@ -7,13 +7,14 @@ from game.guild.dump_parser import parse_dump_file
 from game.guild.dump_analyzer import build_differential as build_dump_differential
 from game.guild.dkp_analyzer import build_differential as build_dkp_summary_differential
 from game.guild.formatter.discord_status_report_formatter import DiscordStatusReportFormatter
-from game.dkp.dkp_gateway import DkpGateway
 from integrations.discord import send_discord_message
+from integrations.opendkp.opendkp import OpenDkp
 from utils.file import move_file, make_directory, get_files_from_directory, read_json, write_json
 from utils.config import get_config
 from utils.array import contains
 
-# TODO: Move to configuration file
+tracked_events = get_config('guild_tracking.track_events')
+
 DUMP_EXTENSION='.dump'
 DUMP_OUTPUT_FOLDER='output\\dumps\\guild'
 DUMP_TIME_FORMAT='%Y%m%d-%H%M%S'
@@ -22,17 +23,17 @@ DKP_SUMMARY_EXTENSION='.json'
 FREQUENCY=get_config('guild_tracking.interval', 300)
 OUTPUT_TO_DISCORD=get_config('guild_tracking.output_to_discord')
 IN_GAME_DUMP_ENABLED=get_config('guild_tracking.in_game_dump.enabled')
-DKP_SUMMARY_ENABLED=get_config('guild_tracking.open_dkp.enabled')
+DKP_SUMMARY_ENABLED='DKP_OFF_DUTY' in tracked_events
 
 class GuildTracker:
-    def __init__(self, eq_window: EverQuestWindow):
+    def __init__(self, eq_window: EverQuestWindow, opendkp: OpenDkp):
         make_directory(DUMP_OUTPUT_FOLDER)
         make_directory(DKP_SUMMARY_OUTPUT_FOLDER)
         self._eq_window = eq_window
+        self._opendkp = opendkp
         self._last_dump = self._lookup_most_recent_dump() if IN_GAME_DUMP_ENABLED else None
         self._last_dkp_summary = self._lookup_most_recent_dkp_summary() if DKP_SUMMARY_ENABLED else None
         self._discord_formatter = DiscordStatusReportFormatter()
-        self._dkp_gateway = DkpGateway()
 
     def _get_safe_guild_name(self):
         return self._eq_window.player.guild.replace(' ', '-')
@@ -57,7 +58,7 @@ class GuildTracker:
 
     def _create_dkp_summary(self):
         dkp_summary_time = datetime.now()
-        new_dkp_summary = self._dkp_gateway.fetch_dkp_summary()
+        new_dkp_summary = self._opendkp.get_dkp_summary()
 
         dkp_summary_differential = None
         if self._last_dkp_summary:
