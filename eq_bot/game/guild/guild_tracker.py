@@ -21,10 +21,10 @@ DUMP_TIME_FORMAT='%Y%m%d-%H%M%S'
 DKP_SUMMARY_OUTPUT_FOLDER='output\\dkp\\summary'
 DKP_SUMMARY_EXTENSION='.json'
 
-FREQUENCY=get_config('guild_tracking.interval', 300)
+INTERVAL=get_config('guild_tracking.interval', 300)
 DISCORD_EVENTS=get_config('guild_tracking.discord_output.events', [])
 
-class GuildTracker:
+class GuildTracker(Thread):
     def __init__(self, eq_window: EverQuestWindow, opendkp: OpenDkp, daemon: bool = True):
         super().__init__(daemon=daemon)
         make_directory(DUMP_OUTPUT_FOLDER)
