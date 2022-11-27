@@ -45,7 +45,7 @@ class CognitoSession:
                 f'cognito-idp.{self._region}.amazonaws.com/{self._user_pool}':
                     self._tokens.id_token
             })
-        print('RESPONSE', response, 'CREDS THO', response['Credentials']['Expiration'])
+
         return IamCredentials(
             expires_at = response['Credentials']['Expiration'],
             access_key_id = response['Credentials']['AccessKeyId'],
@@ -59,6 +59,7 @@ class CognitoSession:
             pool_id=self._user_pool,
             client_id=self._client_id,
             pool_region=self._region).authenticate_user()
+
         return CognitoCredentials(
             # Remove 10 seconds just in case there was latency when returning response
             expires_at=local_datetime() + timedelta(seconds=tokens['AuthenticationResult']['ExpiresIn'] - 10),
@@ -68,10 +69,7 @@ class CognitoSession:
     
     @property
     def tokens(self):
-        # TODO: Check if cognito credentials are expired
-        # and refresh if so
-        if self._tokens is not None:
-            print('HAY', local_datetime(), self._tokens.expires_at)
+        # TODO: Check/refresh cognito credentials if they are expired
         if not self._tokens or local_datetime() >= self._tokens.expires_at:
             self._tokens = self._refresh_tokens()
         return self._tokens
@@ -84,8 +82,7 @@ class CognitoSession:
 
     @property
     def iam_credentials(self):
-        if self._iam_credentials is not None:
-            print('HAY', local_datetime(), self._iam_credentials.expires_at)
+        # TODO: Check/refresh IAM credentials if they are expired
         if not self._iam_credentials or local_datetime() >= self._iam_credentials.expires_at:
             self._iam_credentials = self._get_iam_credentials()
         return self._iam_credentials
