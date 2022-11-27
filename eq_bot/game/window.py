@@ -1,8 +1,10 @@
 import re
 import time
 import win32gui
+
 from queue import Queue
 from threading import Thread
+
 from pynput.keyboard import Key
 from dataclasses import dataclass
 from game.entities.player import CurrentPlayer
@@ -19,7 +21,7 @@ EVERQUEST_ROOT_FOLDER=get_config('game.root_folder').rstrip("\\")
 
 
 class EverQuestWindow(Thread):
-    def __init__(self, daemon: bool = False):
+    def __init__(self, daemon: bool = True):
         super().__init__(daemon=daemon)
         self.player = CurrentPlayer(
             name=get_config('player.name'),
@@ -69,7 +71,7 @@ class EverQuestWindow(Thread):
         return self.send_chat_message(f"/outputfile guild {outputfile}")
 
     def get_player_log_reader(self):
-        return EverQuestLogReader(f'{EVERQUEST_ROOT_FOLDER}\\Logs', self.player, daemon=True)
+        return EverQuestLogReader(f'{EVERQUEST_ROOT_FOLDER}\\Logs', self.player)
 
     def target(self, target):
         self.send_chat_message(f"/target {target}")
