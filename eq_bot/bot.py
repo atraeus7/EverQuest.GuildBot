@@ -14,7 +14,7 @@ class Bot:
         self._player_log_reader = self._window.get_player_log_reader()
         self._guild_tracker = GuildTracker(self._window)
 
-    def start(self):
+    def run(self):
         # Starts a thread which manages a queue of actions to be performed by the window
         self._window.start()
             
@@ -30,7 +30,11 @@ class Bot:
 
         # Starts a thread that continuously monitors the log
         if get_config('log_parsing.enabled', True):
-            self._player_log_reader.start()
+            self._player_log_reader.run()
 
         if get_config('guild_tracking.enabled'):
             self._guild_tracker.start()
+
+        self._window.join()
+        self._player_log_reader.join()
+        self._guild_tracker.join()
