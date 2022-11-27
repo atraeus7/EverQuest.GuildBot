@@ -19,7 +19,7 @@ class BuffManager:
         if RESTRICT_TO_GUILDIES and not self._guild_tracker.is_a_member(tell_message.from_character):
             # TODO: Log a warning
             return
-        
+
         spells_to_cast = []
 
         for spell_name in BUFFING_SPELLS:

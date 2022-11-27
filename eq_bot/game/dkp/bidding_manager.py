@@ -24,6 +24,7 @@ class BiddingManager:
             # TODO: Log a warning
             return
 
+        # Should we move this logic upstream and subscribe to bid messages only?
         bid_message = parse_bid_message(tell_message)
 
         if not bid_message:

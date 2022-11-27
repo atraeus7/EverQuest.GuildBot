@@ -7,5 +7,12 @@ class HttpClient:
 
     def post(self, url, json = None, headers = None):
         # TODO: Add error handling
-        print(url,json,headers)
         return requests.post(url, json = json, headers=headers)
+
+    def put(self, url, json = None, headers = None):
+        # TODO: Add error handling
+        return requests.put(url, json = json, headers=headers)
+
+    def request(self, method, url, json = None, headers = None):
+        # TODO: Add error handling
+        return requests.request(method, url, json = json, headers = headers)

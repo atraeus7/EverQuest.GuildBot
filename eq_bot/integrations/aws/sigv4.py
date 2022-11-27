@@ -13,8 +13,8 @@ def getSignatureKey(key, date_stamp, regionName, serviceName):
     kSigning = sign(kService, 'aws4_request')
     return kSigning
     
-def generate_sigv4_headers(iam_credentials, method, region, endpoint, body,
-        content_type='application/json', headers=None, service='execute-api'):
+def generate_sigv4_headers(iam_credentials, region, method, endpoint, headers,
+    body = '', content_type='application/json', service='execute-api'):
 
     url = urlparse(endpoint)
 

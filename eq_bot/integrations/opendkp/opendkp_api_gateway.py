@@ -54,47 +54,53 @@ class OpenDkpApiGateway:
             cognito_pool_id = response['Identity']
         )
 
-    def create_raid(self, raid_name):
-        body = {
-            "Attendance": 1,
-            "Items": [],
-            "Name": raid_name,
-            "Pool": {
-                "Name": "DoN",
-                "IdPool": 10
-            },
-            "Ticks": [],
-            "Timestamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-            "UpdatedBy": get_secret('dkp.admin.username'),
-            "UpdatedTimestamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-        }
-        print('BODY', body)
-        open_dkp_headers = {
-            "clientid": self.identity_settings.client_id,
-            "cognitoinfo": self.cognito_session.tokens.id_token
-        }
-        headers = {
-            **open_dkp_headers,
-            **generate_sigv4_headers(
+    def _make_secure_request(self, method, endpoint, body, headers):
+        # sign with sigv4 headers
+        headers.update(
+            generate_sigv4_headers(
                 self.cognito_session.iam_credentials,
-                'PUT',
-                'us-east-2',
-                'https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids',
-                json.dumps(body),
-                headers=open_dkp_headers
-            )
-        }
-        print('HEADERS', headers)
-        result = requests.request('PUT',
-            f"https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids",
-            json=body,
-            headers=headers)
-        print('RESULT', result, result.json())
+                OPEN_DKP_AWS_REGION,
+                method,
+                endpoint,
+                headers,
+                body=json.dumps(body),
+                content_type='application/json',
+                service='execute-api'))
+
+        return self._client.request(
+            method,
+            endpoint,
+            body,
+            headers)
+
+    def create_raid(self, raid_name):
+        # TODO: Handle errors
+        return self._make_secure_request(
+            'PUT',
+            'https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids',
+            body = {
+                "Attendance": 1,
+                "Items": [],
+                "Name": raid_name,
+                "Pool": {
+                    "Name": "DoN",
+                    "IdPool": 10
+                },
+                "Ticks": [],
+                "Timestamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                "UpdatedBy": get_secret('dkp.admin.username'),
+                "UpdatedTimestamp": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            },
+            headers = {
+                "clientid": self.identity_settings.client_id,
+                "cognitoinfo": self.cognito_session.tokens.id_token
+            }
+        ).json()
 
     def fetch_dkp_summary(self) -> dict:
         response = self._client.get(
             f"{OPEN_DKP_ROOT_ENDPOINT.rstrip('/')}/dkp",
             headers={ "clientid": self.identity_settings.client_id })
-        print(response.json())
         
+        # TODO: Handle errors
         return build_summary_from_gateway(response.json())
