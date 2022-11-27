@@ -1,5 +1,7 @@
+import time
 import random
 from datetime import datetime, timedelta
+from threading import Thread
 from dataclasses import dataclass
 from game.window import EverQuestWindow, EVERQUEST_ROOT_FOLDER
 from game.guild.entities.dkp_summary import DkpSummary
@@ -8,7 +10,7 @@ from game.guild.dump_analyzer import build_differential as build_dump_differenti
 from game.guild.dkp_analyzer import build_differential as build_dkp_summary_differential
 from game.guild.formatter.discord_status_report_formatter import DiscordStatusReportFormatter
 from game.guild.dkp_gateway import DkpGateway
-from integrations.discord import send_discord_message
+from integrations.discord import send_message, DiscordWebhookType
 from utils.file import move_file, make_directory, get_files_from_directory, read_json, write_json
 from utils.config import get_config
 from utils.array import contains
@@ -19,13 +21,14 @@ DUMP_OUTPUT_FOLDER='output\\dumps\\guild'
 DUMP_TIME_FORMAT='%Y%m%d-%H%M%S'
 DKP_SUMMARY_OUTPUT_FOLDER='output\\dkp\\summary'
 DKP_SUMMARY_EXTENSION='.json'
-FREQUENCY=get_config('guild_tracking.interval', 300)
+INTERVAL=get_config('guild_tracking.interval', 300)
 OUTPUT_TO_DISCORD=get_config('guild_tracking.output_to_discord')
 IN_GAME_DUMP_ENABLED=get_config('guild_tracking.in_game_dump.enabled')
 DKP_SUMMARY_ENABLED=get_config('guild_tracking.open_dkp.enabled')
 
-class GuildTracker:
-    def __init__(self, eq_window: EverQuestWindow):
+class GuildTracker(Thread):
+    def __init__(self, eq_window: EverQuestWindow, daemon: bool = True):
+        super().__init__(daemon=daemon)
         make_directory(DUMP_OUTPUT_FOLDER)
         make_directory(DKP_SUMMARY_OUTPUT_FOLDER)
         self._eq_window = eq_window
@@ -95,17 +98,31 @@ class GuildTracker:
 
         return dump_differential
 
+    # Run this as a daemon so the thread will be cleaned up if the process is destroyed
+    def start(self) -> None:
+        while True:
+            self.update_status()
+            time.sleep(INTERVAL)
+
     def update_status(self):
         dump_differential = None
         dkp_summary_differential = None
-        if IN_GAME_DUMP_ENABLED and not self._last_dump or datetime.now() + timedelta(seconds=-FREQUENCY) > self._last_dump.taken_at:
+
+        if IN_GAME_DUMP_ENABLED:
             dump_differential = self._create_dump()
-        if DKP_SUMMARY_ENABLED and not self._last_dkp_summary or datetime.now() + timedelta(seconds=-FREQUENCY) > self._last_dkp_summary.taken_at:
+
+        if DKP_SUMMARY_ENABLED:
             dkp_summary_differential = self._create_dkp_summary()
         
         if OUTPUT_TO_DISCORD:
-            send_discord_message(self._discord_formatter.build_output(dump_differential, dkp_summary_differential))
+            message = self._discord_formatter.build_output(
+                dump_differential,
+                dkp_summary_differential)
 
+            if message:
+                send_message(
+                    DiscordWebhookType.GUILD_STATUS,
+                    message)
 
     def is_a_member(self, name):
         if not self._last_dump:
