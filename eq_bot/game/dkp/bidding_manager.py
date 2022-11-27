@@ -31,6 +31,7 @@ class BiddingManager:
             return
 
         if bid_message.message_type == BidMessageType.ENQUEUE_BID_ITEMS:
+            # TODO: Restrict to officers in guild only
             if len(bid_message.items) == 0:
                 print('Received enqueue bid message, but no items were enqueued.')
                 self._eq_window.send_tell_message(
@@ -43,6 +44,7 @@ class BiddingManager:
             print(f'{bid_message.from_player} has enqueued the following items: {bid_message.items}')
 
         if bid_message.message_type == BidMessageType.START_ROUND:
+            # TODO: Restrict to officers in guild only
             if self._bidding_round.is_enabled():
                 print(f'{bid_message.from_player} attempted to start a round of bidding, but a round is currently active.')
                 self._eq_window.send_tell_message(
@@ -65,6 +67,7 @@ class BiddingManager:
                     message)
 
         if bid_message.message_type == BidMessageType.END_ROUND:
+            # TODO: Restrict to officers in guild only
             if not self._bidding_round.is_enabled():
                 print(f'{bid_message.from_player} attempted to end a round of bidding, but a round is not active.')
                 self._eq_window.send_tell_message(
@@ -108,6 +111,7 @@ class BiddingManager:
             print(f'{bid_message.from_player} has bid {bid_message.amount} on {bid_message.item}')
 
         if bid_message.message_type == BidMessageType.BEGIN_RAID:
+            # TODO: Restrict to officers in guild only
             self._opendkp.create_raid(bid_message.raid_name)
 
             # TODO: FEATURE ENHANCEMENT
