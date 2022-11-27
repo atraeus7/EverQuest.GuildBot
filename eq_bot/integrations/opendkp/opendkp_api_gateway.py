@@ -13,10 +13,13 @@ from utils.config import get_config, get_secret
 from integrations.aws.sigv4 import generate_sigv4_headers
 from integrations.aws.cognito_session import CognitoSession
 
-OPEN_DKP_ROOT_ENDPOINT = get_config('opendkp.root_endpoint')
 OPEN_DKP_HOST = get_config('opendkp.host')
 OPEN_DKP_SUBDOMAIN = '.'.join(OPEN_DKP_HOST.split('.')[0:-2])
-OPEN_DKP_AWS_REGION = OPEN_DKP_ROOT_ENDPOINT.split('.')[2]
+
+OPEN_DKP_ROOT_ENDPOINT = get_config('opendkp.root_endpoint')
+OPEN_DKP_IDENTITY_ENDPOINT = get_config('opendkp.identity_endpoint')
+OPEN_DKP_SECURE_ENDPOINT = get_config('opendkp.secure_endpoint')
+OPEN_DKP_AWS_REGION = get_config('opendkp.aws_region')
 
 
 class OpenDkpApiGateway:
@@ -45,7 +48,7 @@ class OpenDkpApiGateway:
 
     def _get_identity_settings(self) -> None:
         response = self._client.get(
-            f"https://4jmtrkwc86.execute-api.us-east-2.amazonaws.com/beta/client/{OPEN_DKP_SUBDOMAIN}"
+            f"{OPEN_DKP_IDENTITY_ENDPOINT}/client/{OPEN_DKP_SUBDOMAIN}"
         ).json()
         return OpenDkpIdentitySettings(
             client_id = response["ClientId"],
@@ -77,7 +80,7 @@ class OpenDkpApiGateway:
         # TODO: Handle errors
         return self._make_secure_request(
             'PUT',
-            'https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids',
+            f'{OPEN_DKP_SECURE_ENDPOINT}/raids',
             body = {
                 "Attendance": 1,
                 "Items": [],
