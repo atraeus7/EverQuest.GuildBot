@@ -77,15 +77,11 @@ class GuildTracker(Thread):
         return dkp_summary_differential
 
     def _create_dump(self):
-        self._eq_window.handle_window_action(lambda: self._create_dump_async)
-
-    def _create_dump_async(self):
         dump_time = datetime.now()
         dump_time_str = dump_time.strftime(DUMP_TIME_FORMAT)
         dump_filename = f"{self._get_safe_guild_name()}-Dump-{dump_time_str}"
-
         self._eq_window.guild_dump(dump_filename)
-        dump_filepath = f"{EVERQUEST_ROOT_FOLDER}\\{dump_filename}.txt"
+        dump_filepath = f"{EVERQUEST_ROOT_FOLDER}\{dump_filename}.txt"
 
         new_dump = parse_dump_file(dump_time, dump_filepath)
         new_dump.print()
@@ -98,34 +94,30 @@ class GuildTracker(Thread):
         self._last_dump = new_dump
 
         # Backup file in local output for future parsing
-        move_file(dump_filepath, f"{DUMP_OUTPUT_FOLDER}\\{os.path.basename(dump_filepath)}{DUMP_EXTENSION}")
+        move_file(dump_filepath, f"{DUMP_OUTPUT_FOLDER}\{dump_filename}{DUMP_EXTENSION}")
 
-        if OUTPUT_TO_DISCORD:
-            message = self._discord_formatter.build_output(
-                dump_differential=dump_differential)
-
-            if message:
-                send_message(
-                    DiscordWebhookType.GUILD_STATUS,
-                    message)
+        return dump_differential
 
     # Run this as a daemon so the thread will be cleaned up if the process is destroyed
     def run(self) -> None:
         while True:
-            self.update_status()
+            self._eq_window.handle_window_action(lambda: self.update_status)
             time.sleep(INTERVAL)
 
     def update_status(self):
+        dump_differential = None
         dkp_summary_differential = None
 
         if IN_GAME_DUMP_ENABLED:
-            self._create_dump()
+            dump_differential = self._create_dump()
 
         if DKP_SUMMARY_ENABLED:
             dkp_summary_differential = self._create_dkp_summary()
         
         if OUTPUT_TO_DISCORD:
-            message = self._discord_formatter.build_output(dkp_summary_differential=dkp_summary_differential)
+            message = self._discord_formatter.build_output(
+                dump_differential,
+                dkp_summary_differential)
 
             if message:
                 send_message(
