@@ -30,7 +30,7 @@ class Bot:
 
         # Starts a thread that continuously monitors the log
         if get_config('log_parsing.enabled', True):
-            self._player_log_reader.run()
+            self._player_log_reader.start()
 
         if get_config('guild_tracking.enabled'):
             self._guild_tracker.start()
