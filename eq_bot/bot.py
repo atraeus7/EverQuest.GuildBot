@@ -38,4 +38,4 @@ class Bot:
 
         # This thread is probably processing the signal handlers, so we need to let it run every so often
         while True:
-            time.sleep(1)
+            time.sleep(TICK_INTERVAL)
