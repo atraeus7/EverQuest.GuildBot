@@ -101,7 +101,7 @@ class GuildTracker(Thread):
     # Run this as a daemon so the thread will be cleaned up if the process is destroyed
     def run(self) -> None:
         while True:
-            self._eq_window.handle_window_action(lambda: self.update_status)
+            self._eq_window.handle_window_action(self.update_status)
             time.sleep(INTERVAL)
 
     def update_status(self):

@@ -3,8 +3,8 @@ from typing import Any
 from utils.file import read_yaml
 
 # TODO: Move to configuration file
-SECRETS_PATH="secrets.yaml"
-CONFIG_PATH="config.yaml"
+SECRETS_PATH="../secrets.yaml"
+CONFIG_PATH="../config.yaml"
 
 
 def _get_from_path(input, path, default_value):
